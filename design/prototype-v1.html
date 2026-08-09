@@ -1,0 +1,847 @@
+<title>Rozana — design prototype</title>
+
+<style>
+/* ─────────────────────────  TOKENS  ───────────────────────── */
+:root{
+  --ground:#FAF6F2;
+  --surface:#FFFFFF;
+  --surface-2:#F4EEE8;
+  --ink:#1C1729;
+  --ink-2:#5B5370;
+  --ink-3:#8E86A3;
+  --line:#EDE4DB;
+  --line-soft:#F5EEE7;
+
+  --violet-deep:#3A1D6E;
+  --violet:#6B2FB5;
+  --orchid:#9B3F9E;
+  --violet-tint:#F1EAFB;
+
+  --gold:#E0952A;
+  --gold-bright:#F2A93B;
+  --gold-tint:#FDF0DA;
+
+  --in:#0F8A66;
+  --in-tint:#DFF2EB;
+  --out:#CF4128;
+  --out-tint:#FBE6E1;
+
+  --shadow-sm:0 1px 2px rgba(46,26,86,.06), 0 4px 14px rgba(46,26,86,.06);
+  --shadow-md:0 2px 4px rgba(46,26,86,.06), 0 12px 32px rgba(46,26,86,.10);
+  --shadow-hero:0 10px 34px rgba(58,29,110,.30);
+
+  --stage:#EFE7E0;
+  --r-lg:26px; --r-md:20px; --r-sm:14px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ground:#131020;
+    --surface:#1D1830;
+    --surface-2:#272141;
+    --ink:#F4F0FB;
+    --ink-2:#B4ABCB;
+    --ink-3:#847BA0;
+    --line:#2F2850;
+    --line-soft:#241E3C;
+
+    --violet-tint:#2A2049;
+    --gold:#FFC15E;
+    --gold-bright:#FFCE7A;
+    --gold-tint:#3A2C15;
+
+    --in:#3BD39B;
+    --in-tint:rgba(59,211,155,.13);
+    --out:#FF7F63;
+    --out-tint:rgba(255,127,99,.13);
+
+    --shadow-sm:0 1px 2px rgba(0,0,0,.4);
+    --shadow-md:0 12px 30px rgba(0,0,0,.45);
+    --shadow-hero:0 12px 34px rgba(0,0,0,.55);
+    --stage:#0C0A15;
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#131020;
+  --surface:#1D1830;
+  --surface-2:#272141;
+  --ink:#F4F0FB;
+  --ink-2:#B4ABCB;
+  --ink-3:#847BA0;
+  --line:#2F2850;
+  --line-soft:#241E3C;
+
+  --violet-tint:#2A2049;
+  --gold:#FFC15E;
+  --gold-bright:#FFCE7A;
+  --gold-tint:#3A2C15;
+
+  --in:#3BD39B;
+  --in-tint:rgba(59,211,155,.13);
+  --out:#FF7F63;
+  --out-tint:rgba(255,127,99,.13);
+
+  --shadow-sm:0 1px 2px rgba(0,0,0,.4);
+  --shadow-md:0 12px 30px rgba(0,0,0,.45);
+  --shadow-hero:0 12px 34px rgba(0,0,0,.55);
+  --stage:#0C0A15;
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0;
+  background:var(--stage);
+  color:var(--ink);
+  font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  -webkit-font-smoothing:antialiased;
+  font-size:16px;
+}
+.num{font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1}
+.rnd{font-family:ui-rounded,"SF Pro Rounded","Segoe UI Variable Display",system-ui,sans-serif}
+
+/* ─────────────────────────  STAGE / PHONE  ───────────────────────── */
+.stage{
+  min-height:100dvh;
+  display:flex; flex-direction:column; align-items:center;
+  gap:26px; padding:34px 20px 48px;
+  background:
+    radial-gradient(900px 520px at 15% -10%, rgba(155,63,158,.20), transparent 60%),
+    radial-gradient(760px 480px at 92% 8%, rgba(224,149,42,.20), transparent 62%),
+    var(--stage);
+}
+.stage-head{max-width:430px;text-align:center;display:flex;flex-direction:column;gap:8px}
+.stage-eyebrow{
+  font-size:11px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--ink-3);font-weight:650;
+}
+.stage-head h1{margin:0;font-size:25px;letter-spacing:-.02em;font-weight:700;text-wrap:balance}
+.stage-head p{margin:0;font-size:14px;line-height:1.55;color:var(--ink-2);text-wrap:pretty}
+
+.phone{
+  width:100%; max-width:412px;
+  background:var(--ground);
+  border-radius:46px;
+  box-shadow:0 0 0 10px rgba(28,23,41,.82), 0 34px 70px rgba(24,12,48,.42);
+  overflow:hidden;
+  position:relative;
+}
+@media (max-width:520px){
+  .stage{padding:0;gap:0;background:var(--ground)}
+  .stage-head{display:none}
+  .stage-foot{display:none}
+  .phone{max-width:none;border-radius:0;box-shadow:none}
+}
+
+.app{display:flex;flex-direction:column;height:756px;position:relative}
+@media (max-width:520px){ .app{height:100dvh} }
+
+/* ─────────────────────────  SCREENS  ───────────────────────── */
+.screen{
+  flex:1; overflow-y:auto; overflow-x:hidden;
+  padding:0 0 96px;
+  display:none;
+  -webkit-overflow-scrolling:touch;
+}
+.screen.on{display:block;animation:rise .34s cubic-bezier(.22,.9,.32,1)}
+@keyframes rise{from{opacity:0;transform:translateY(9px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){
+  .screen.on{animation:none}
+  *{transition:none!important}
+}
+.pad{padding-inline:18px}
+
+/* ── App bar ── */
+.bar{
+  display:flex;align-items:center;gap:12px;
+  padding:20px 18px 12px;
+}
+.bar h2{margin:0;font-size:19px;font-weight:700;letter-spacing:-.015em;flex:1}
+.bar .sub{font-size:12.5px;color:var(--ink-3);margin:2px 0 0;font-weight:500}
+.iconbtn{
+  width:38px;height:38px;flex:none;display:grid;place-items:center;
+  border-radius:13px;border:1px solid var(--line);
+  background:var(--surface);color:var(--ink-2);cursor:pointer;
+  box-shadow:var(--shadow-sm); transition:transform .16s, color .16s;
+}
+.iconbtn:hover{color:var(--violet);transform:translateY(-1px)}
+.iconbtn:focus-visible{outline:2.5px solid var(--violet);outline-offset:2px}
+:root[data-theme="dark"] .iconbtn:hover,
+:root:not([data-theme="light"]) .iconbtn:hover{color:var(--gold)}
+@media (prefers-color-scheme:light){:root:not([data-theme="dark"]) .iconbtn:hover{color:var(--violet)}}
+
+.avatar{
+  width:38px;height:38px;flex:none;border-radius:50%;
+  display:grid;place-items:center;color:#fff;font-weight:700;font-size:13.5px;
+  background:linear-gradient(140deg,var(--violet),var(--orchid));
+  box-shadow:0 3px 10px rgba(107,47,181,.36);
+}
+
+/* ── Month strip ── */
+.months{
+  display:flex;gap:8px;overflow-x:auto;padding:2px 18px 14px;
+  scrollbar-width:none;
+}
+.months::-webkit-scrollbar{display:none}
+.chipm{
+  flex:none;padding:8px 15px;border-radius:999px;font-size:13px;font-weight:600;
+  border:1px solid var(--line);background:var(--surface);color:var(--ink-2);
+  cursor:pointer;white-space:nowrap;transition:.18s;
+}
+.chipm[aria-pressed="true"]{
+  background:linear-gradient(135deg,var(--violet-deep),var(--violet));
+  color:#fff;border-color:transparent;box-shadow:0 4px 14px rgba(58,29,110,.32);
+}
+.chipm:focus-visible{outline:2.5px solid var(--gold);outline-offset:2px}
+
+/* ── Hero balance card ── */
+.hero{
+  margin:0 18px;padding:22px 22px 0;border-radius:var(--r-lg);
+  position:relative;overflow:hidden;color:#fff;
+  background:
+    radial-gradient(420px 200px at 108% -30%, rgba(242,169,59,.55), transparent 66%),
+    radial-gradient(320px 240px at -18% 118%, rgba(207,65,40,.42), transparent 68%),
+    linear-gradient(138deg,#3A1D6E 8%,#6B2FB5 52%,#9B3F9E 100%);
+  box-shadow:var(--shadow-hero);
+}
+.hero::after{ /* layered paper-cut arc, echoing the reference */
+  content:"";position:absolute;left:-14%;right:-14%;bottom:-64%;height:132%;
+  border-radius:50% 50% 0 0/60% 60% 0 0;
+  background:rgba(255,255,255,.07);pointer-events:none;
+}
+.hero-label{
+  font-size:11px;letter-spacing:.15em;text-transform:uppercase;
+  font-weight:650;color:rgba(255,255,255,.72);
+}
+.hero-amt{
+  display:flex;align-items:baseline;gap:7px;margin:7px 0 0;
+  font-size:37px;font-weight:750;letter-spacing:-.03em;line-height:1.05;
+}
+.hero-amt .cur{font-size:16px;font-weight:600;color:rgba(255,255,255,.72);letter-spacing:0}
+.hero-note{
+  margin:9px 0 0;font-size:12.5px;color:rgba(255,255,255,.74);
+  display:flex;align-items:center;gap:6px;font-weight:500;
+}
+.pill-up{
+  background:rgba(255,255,255,.16);border-radius:999px;padding:2px 8px;
+  font-weight:650;color:#fff;font-size:11.5px;
+}
+
+/* carry-forward flow inside hero */
+.flow{
+  position:relative;display:flex;margin:20px -22px 0;
+  background:rgba(0,0,0,.20);backdrop-filter:blur(2px);
+}
+.flow div{
+  flex:1;padding:12px 6px 14px;text-align:center;
+  border-right:1px solid rgba(255,255,255,.13);
+}
+.flow div:last-child{border-right:0;background:rgba(242,169,59,.18)}
+.flow dt{
+  margin:0;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;
+  color:rgba(255,255,255,.62);font-weight:650;
+}
+.flow dd{margin:5px 0 0;font-size:13.5px;font-weight:700;letter-spacing:-.01em}
+.flow .g{color:#8FE9C4} .flow .r{color:#FFB4A0} .flow .y{color:var(--gold-bright)}
+
+/* ── Section heading ── */
+.sec{
+  display:flex;align-items:center;gap:10px;margin:26px 18px 11px;
+}
+.sec h3{margin:0;font-size:12px;letter-spacing:.13em;text-transform:uppercase;color:var(--ink-3);font-weight:700;flex:1}
+.sec a{font-size:12.5px;color:var(--violet);font-weight:650;text-decoration:none}
+:root[data-theme="dark"] .sec a,:root:not([data-theme="light"]) .sec a{color:var(--gold)}
+@media (prefers-color-scheme:light){:root:not([data-theme="dark"]) .sec a{color:var(--violet)}}
+
+/* ── Account rows ── */
+.stack{display:flex;flex-direction:column;gap:10px;padding-inline:18px}
+.row{
+  display:flex;align-items:center;gap:13px;width:100%;text-align:left;
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);
+  padding:14px 15px;cursor:pointer;box-shadow:var(--shadow-sm);
+  transition:transform .17s cubic-bezier(.22,.9,.32,1), box-shadow .17s;
+  color:inherit;font:inherit;
+}
+.row:hover{transform:translateY(-2px);box-shadow:var(--shadow-md)}
+.row:focus-visible{outline:2.5px solid var(--violet);outline-offset:2px}
+.glyph{
+  width:44px;height:44px;flex:none;border-radius:15px;display:grid;place-items:center;
+  background:var(--violet-tint);color:var(--violet);
+}
+:root[data-theme="dark"] .glyph,:root:not([data-theme="light"]) .glyph{color:var(--gold)}
+@media (prefers-color-scheme:light){:root:not([data-theme="dark"]) .glyph{color:var(--violet)}}
+.glyph.gold{background:var(--gold-tint);color:var(--gold)}
+.glyph.in{background:var(--in-tint);color:var(--in)}
+.glyph.out{background:var(--out-tint);color:var(--out)}
+.row-main{flex:1;min-width:0}
+.row-t{font-size:14.5px;font-weight:650;letter-spacing:-.01em;display:block}
+.row-s{font-size:12px;color:var(--ink-3);margin-top:3px;display:block;font-weight:500}
+.row-amt{text-align:right;font-size:15px;font-weight:700;letter-spacing:-.015em;white-space:nowrap}
+.row-amt small{display:block;font-size:10.5px;color:var(--ink-3);font-weight:600;margin-top:3px;letter-spacing:.04em}
+.pos{color:var(--in)} .neg{color:var(--out)}
+
+/* ── Ledger entries ── */
+.daygroup{margin-top:18px}
+.dayhead{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 18px 8px;font-size:11.5px;font-weight:700;color:var(--ink-3);
+  letter-spacing:.06em;text-transform:uppercase;
+}
+.entry{
+  display:flex;align-items:center;gap:12px;width:100%;text-align:left;
+  padding:12px 18px;background:var(--surface);border:0;
+  border-top:1px solid var(--line-soft);cursor:pointer;color:inherit;font:inherit;
+  transition:background .16s;
+}
+.entry:first-of-type{border-top:1px solid var(--line)}
+.entry:last-of-type{border-bottom:1px solid var(--line)}
+.entry:hover{background:var(--surface-2)}
+.entry:focus-visible{outline:2.5px solid var(--violet);outline-offset:-3px}
+.entry .glyph{width:38px;height:38px;border-radius:13px}
+.who{
+  display:inline-flex;align-items:center;gap:4px;font-size:10.5px;font-weight:650;
+  color:var(--ink-3);background:var(--surface-2);border-radius:999px;padding:2px 7px;
+}
+.tag{
+  display:inline-block;font-size:10px;font-weight:700;letter-spacing:.07em;
+  text-transform:uppercase;padding:2px 7px;border-radius:6px;
+  background:var(--gold-tint);color:var(--gold);
+}
+.tag.home{background:var(--violet-tint);color:var(--violet)}
+:root[data-theme="dark"] .tag.home,:root:not([data-theme="light"]) .tag.home{color:#C9A6FF}
+@media (prefers-color-scheme:light){:root:not([data-theme="dark"]) .tag.home{color:var(--violet)}}
+
+/* ── Card ── */
+.card{
+  margin:0 18px;background:var(--surface);border:1px solid var(--line);
+  border-radius:var(--r-md);padding:17px;box-shadow:var(--shadow-sm);
+}
+.card + .card{margin-top:12px}
+
+/* ── Segmented control ── */
+.seg{
+  display:flex;gap:4px;margin:0 18px 14px;padding:4px;
+  background:var(--surface-2);border-radius:14px;
+}
+.seg button{
+  flex:1;padding:9px 4px;border:0;border-radius:11px;background:transparent;
+  font:inherit;font-size:13px;font-weight:650;color:var(--ink-2);cursor:pointer;
+  transition:.18s;
+}
+.seg button[aria-pressed="true"]{
+  background:var(--surface);color:var(--ink);box-shadow:var(--shadow-sm);
+}
+.seg button:focus-visible{outline:2.5px solid var(--violet);outline-offset:1px}
+
+/* ── Bars ── */
+.bars{display:flex;flex-direction:column;gap:14px}
+.barrow .bl{display:flex;align-items:baseline;gap:8px;margin-bottom:7px}
+.barrow .bl b{font-size:13.5px;font-weight:650;flex:1;letter-spacing:-.01em}
+.barrow .bl span{font-size:13px;font-weight:700}
+.barrow .bl i{font-style:normal;font-size:11px;color:var(--ink-3);font-weight:600}
+.track{height:8px;border-radius:99px;background:var(--surface-2);overflow:hidden}
+.fill{height:100%;border-radius:99px;transition:width .7s cubic-bezier(.22,.9,.32,1)}
+
+/* ── People ── */
+.person{display:flex;align-items:center;gap:12px;padding:13px 0;border-top:1px solid var(--line-soft)}
+.person:first-child{border-top:0;padding-top:0}
+.person:last-child{padding-bottom:0}
+.pav{
+  width:42px;height:42px;border-radius:50%;flex:none;display:grid;place-items:center;
+  color:#fff;font-weight:700;font-size:14px;
+}
+.role{
+  font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+  padding:3px 8px;border-radius:7px;background:var(--surface-2);color:var(--ink-2);
+}
+.role.owner{background:linear-gradient(135deg,var(--violet-deep),var(--violet));color:#fff}
+
+/* ── Buttons ── */
+.btn{
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  width:100%;padding:15px;border-radius:16px;border:0;cursor:pointer;
+  font:inherit;font-size:15px;font-weight:700;letter-spacing:-.01em;
+  transition:transform .16s, box-shadow .16s;
+}
+.btn:hover{transform:translateY(-2px)}
+.btn:focus-visible{outline:2.5px solid var(--gold);outline-offset:2px}
+.btn-in{background:var(--in);color:#fff;box-shadow:0 6px 18px rgba(15,138,102,.34)}
+.btn-out{background:var(--out);color:#fff;box-shadow:0 6px 18px rgba(207,65,40,.32)}
+.btn-ghost{background:var(--surface);color:var(--ink);border:1px solid var(--line);box-shadow:var(--shadow-sm)}
+.duo{display:flex;gap:10px;padding:0 18px}
+
+/* ── Add-entry screen ── */
+.amount-stage{
+  margin:0 18px;padding:26px 20px;border-radius:var(--r-lg);text-align:center;
+  background:linear-gradient(150deg,var(--violet-tint),var(--surface));
+  border:1px solid var(--line);
+}
+.amount-stage .lab{font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--ink-3);font-weight:700}
+.amount-stage .val{
+  margin-top:10px;font-size:42px;font-weight:750;letter-spacing:-.035em;
+  display:flex;align-items:baseline;justify-content:center;gap:8px;
+}
+.amount-stage .val em{font-style:normal;font-size:17px;font-weight:600;color:var(--ink-3)}
+.caret{display:inline-block;width:2.5px;height:34px;background:var(--out);border-radius:2px;animation:blink 1.1s steps(2,start) infinite;translate:0 4px}
+@keyframes blink{to{visibility:hidden}}
+
+.chips{display:flex;flex-wrap:wrap;gap:8px;padding:0 18px}
+.chip{
+  padding:9px 13px;border-radius:12px;border:1px solid var(--line);
+  background:var(--surface);font:inherit;font-size:13px;font-weight:600;
+  color:var(--ink-2);cursor:pointer;display:flex;align-items:center;gap:6px;transition:.17s;
+}
+.chip[aria-pressed="true"]{
+  background:var(--gold-tint);border-color:var(--gold);color:var(--gold);
+}
+.chip:focus-visible{outline:2.5px solid var(--violet);outline-offset:2px}
+
+.field{
+  display:flex;align-items:center;gap:12px;margin:0 18px;padding:14px 15px;
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);
+  box-shadow:var(--shadow-sm);
+}
+.field + .field{margin-top:10px}
+.field .k{font-size:13px;color:var(--ink-3);font-weight:600;flex:none;min-width:76px}
+.field .v{font-size:14px;font-weight:650;flex:1;text-align:right}
+
+/* ── Callout ── */
+.callout{
+  margin:14px 18px 0;padding:14px 15px;border-radius:var(--r-sm);
+  background:var(--gold-tint);border:1px solid rgba(224,149,42,.3);
+  font-size:12.5px;line-height:1.6;color:var(--ink-2);
+}
+.callout b{color:var(--ink)}
+
+/* ── Tab bar ── */
+.tabs{
+  position:absolute;left:0;right:0;bottom:0;
+  display:flex;align-items:center;
+  padding:9px 10px calc(11px + env(safe-area-inset-bottom));
+  background:color-mix(in srgb, var(--surface) 88%, transparent);
+  backdrop-filter:blur(16px) saturate(150%);
+  border-top:1px solid var(--line);
+}
+.tab{
+  flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;
+  background:0;border:0;cursor:pointer;padding:5px 2px;color:var(--ink-3);
+  font:inherit;font-size:10px;font-weight:650;letter-spacing:.01em;transition:color .18s;
+}
+.tab[aria-current="true"]{color:var(--violet)}
+:root[data-theme="dark"] .tab[aria-current="true"],
+:root:not([data-theme="light"]) .tab[aria-current="true"]{color:var(--gold)}
+@media (prefers-color-scheme:light){:root:not([data-theme="dark"]) .tab[aria-current="true"]{color:var(--violet)}}
+.tab:focus-visible{outline:2.5px solid var(--violet);outline-offset:-2px;border-radius:10px}
+.fab{
+  flex:none;width:54px;height:54px;border-radius:19px;border:0;cursor:pointer;
+  display:grid;place-items:center;color:#fff;margin:-22px 6px 0;
+  background:linear-gradient(140deg,var(--violet),var(--orchid));
+  box-shadow:0 8px 22px rgba(107,47,181,.45);
+  transition:transform .18s cubic-bezier(.22,.9,.32,1);
+}
+.fab:hover{transform:translateY(-3px) rotate(90deg)}
+.fab:focus-visible{outline:2.5px solid var(--gold);outline-offset:3px}
+
+/* ── Stage footer notes ── */
+.stage-foot{
+  max-width:412px;width:100%;display:flex;flex-direction:column;gap:10px;
+  color:var(--ink-2);font-size:13px;line-height:1.6;
+}
+.stage-foot h4{
+  margin:0;font-size:11px;letter-spacing:.15em;text-transform:uppercase;
+  color:var(--ink-3);font-weight:700;
+}
+.stage-foot ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px}
+.stage-foot code{
+  background:var(--surface-2);padding:1px 6px;border-radius:6px;
+  font-size:12px;font-family:ui-monospace,monospace;
+}
+</style>
+
+<div class="stage">
+  <header class="stage-head">
+    <div class="stage-eyebrow">Design prototype · v1</div>
+    <h1 class="rnd">Rozana</h1>
+    <p>A working sketch of the screens, with your family's numbers in Pakistani rupees. Tap anything — the tabs, the accounts, the months. Nothing is saved; this is about how it looks and how the money model reads.</p>
+  </header>
+
+  <div class="phone">
+  <div class="app">
+
+    <!-- ══════════════════  HOME  ══════════════════ -->
+    <section class="screen on" id="s-home">
+      <div class="bar">
+        <div style="flex:1">
+          <h2 class="rnd">Assalam-u-alaikum, Zargham</h2>
+          <p class="sub">Saturday, 9 August</p>
+        </div>
+        <div class="avatar rnd">ZA</div>
+      </div>
+
+      <div class="months" role="group" aria-label="Choose month">
+        <button class="chipm" type="button" aria-pressed="false">Jun</button>
+        <button class="chipm" type="button" aria-pressed="false">Jul</button>
+        <button class="chipm" type="button" aria-pressed="true">August 2026</button>
+        <button class="chipm" type="button" aria-pressed="false">Sep</button>
+      </div>
+
+      <div class="hero">
+        <div class="hero-label">Total money in hand</div>
+        <div class="hero-amt rnd num"><span class="cur">Rs</span>184,300</div>
+        <p class="hero-note">Across 4 accounts <span class="pill-up num">+Rs 12,800</span> vs July</p>
+
+        <dl class="flow num rnd">
+          <div><dt>Opened with</dt><dd>171,500</dd></div>
+          <div><dt>Came in</dt><dd class="g">+285,000</dd></div>
+          <div><dt>Went out</dt><dd class="r">−272,200</dd></div>
+          <div><dt>Carries fwd</dt><dd class="y">184,300</dd></div>
+        </dl>
+      </div>
+
+      <div class="callout">
+        <b>This is the carry-forward you asked for.</b> You never create a new book each month — August simply <em>opened</em> with what July closed on. Change the month chip and the whole screen re-reads.
+      </div>
+
+      <div class="sec"><h3>Where the money sits</h3><a href="#" onclick="return false">Add account</a></div>
+      <div class="stack">
+        <button class="row" type="button" onclick="go('ledger')">
+          <span class="glyph gold">$wallet</span>
+          <span class="row-main"><span class="row-t">Zargham · Cash in hand</span><span class="row-s">Last entry 2 hours ago</span></span>
+          <span class="row-amt num rnd">Rs 42,300 <small>IN HAND</small></span>
+        </button>
+        <button class="row" type="button" onclick="go('ledger')">
+          <span class="glyph gold">$wallet</span>
+          <span class="row-main"><span class="row-t">Ayesha · Cash in hand</span><span class="row-s">Last entry yesterday</span></span>
+          <span class="row-amt num rnd">Rs 18,650 <small>IN HAND</small></span>
+        </button>
+        <button class="row" type="button" onclick="go('ledger')">
+          <span class="glyph">$bank</span>
+          <span class="row-main"><span class="row-t">HBL · Current account</span><span class="row-s">Salary credited 1 Aug</span></span>
+          <span class="row-amt num rnd">Rs 108,900 <small>BALANCE</small></span>
+        </button>
+        <button class="row" type="button" onclick="go('ledger')">
+          <span class="glyph">$safe</span>
+          <span class="row-main"><span class="row-t">Savings · Emergency</span><span class="row-s">No movement this month</span></span>
+          <span class="row-amt num rnd">Rs 14,450 <small>BALANCE</small></span>
+        </button>
+      </div>
+
+      <div class="sec"><h3>August so far</h3><a href="#" onclick="go('report');return false">Full report</a></div>
+      <div class="card">
+        <div class="bars">
+          <div class="barrow">
+            <div class="bl"><b>Household</b><span class="num">Rs 198,400</span><i>73%</i></div>
+            <div class="track"><div class="fill" style="width:73%;background:linear-gradient(90deg,var(--violet),var(--orchid))"></div></div>
+          </div>
+          <div class="barrow">
+            <div class="bl"><b>Personal</b><span class="num">Rs 73,800</span><i>27%</i></div>
+            <div class="track"><div class="fill" style="width:27%;background:linear-gradient(90deg,var(--gold),var(--gold-bright))"></div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════  LEDGER  ══════════════════ -->
+    <section class="screen" id="s-ledger">
+      <div class="bar">
+        <button class="iconbtn" type="button" onclick="go('home')" aria-label="Back">$back</button>
+        <div style="flex:1">
+          <h2 class="rnd">Zargham · Cash in hand</h2>
+          <p class="sub">August 2026 · 14 entries</p>
+        </div>
+        <button class="iconbtn" type="button" aria-label="Filter entries">$filter</button>
+      </div>
+
+      <div class="hero" style="padding-bottom:0">
+        <div class="hero-label">Balance in this account</div>
+        <div class="hero-amt rnd num"><span class="cur">Rs</span>42,300</div>
+        <dl class="flow num rnd">
+          <div><dt>Opening</dt><dd>36,000</dd></div>
+          <div><dt>In</dt><dd class="g">+95,000</dd></div>
+          <div><dt>Out</dt><dd class="r">−88,700</dd></div>
+        </dl>
+      </div>
+
+      <div class="daygroup">
+        <div class="dayhead"><span>Today · 9 August</span><span class="num">−Rs 4,900</span></div>
+        <button class="entry" type="button">
+          <span class="glyph out">$cart</span>
+          <span class="row-main">
+            <span class="row-t">Grocery — Al-Fatah</span>
+            <span class="row-s"><span class="tag home">Household</span> <span class="who">Zargham</span></span>
+          </span>
+          <span class="row-amt num neg rnd">−3,400</span>
+        </button>
+        <button class="entry" type="button">
+          <span class="glyph out">$fuel</span>
+          <span class="row-main">
+            <span class="row-t">Petrol</span>
+            <span class="row-s"><span class="tag">Personal</span> <span class="who">Zargham</span></span>
+          </span>
+          <span class="row-amt num neg rnd">−1,500</span>
+        </button>
+      </div>
+
+      <div class="daygroup">
+        <div class="dayhead"><span>Yesterday · 8 August</span><span class="num">+Rs 25,600</span></div>
+        <button class="entry" type="button">
+          <span class="glyph in">$transfer</span>
+          <span class="row-main">
+            <span class="row-t">Withdrew from HBL</span>
+            <span class="row-s"><span class="tag home">Transfer</span> <span class="who">Zargham</span></span>
+          </span>
+          <span class="row-amt num pos rnd">+30,000</span>
+        </button>
+        <button class="entry" type="button">
+          <span class="glyph out">$bolt</span>
+          <span class="row-main">
+            <span class="row-t">K-Electric bill</span>
+            <span class="row-s"><span class="tag home">Household</span> <span class="who">Zargham</span></span>
+          </span>
+          <span class="row-amt num neg rnd">−4,400</span>
+        </button>
+      </div>
+
+      <div class="daygroup">
+        <div class="dayhead"><span>6 August</span><span class="num">−Rs 35,000</span></div>
+        <button class="entry" type="button">
+          <span class="glyph out">$book</span>
+          <span class="row-main">
+            <span class="row-t">Bilal — school fees</span>
+            <span class="row-s"><span class="tag home">Household</span> <span class="who">Ayesha</span></span>
+          </span>
+          <span class="row-amt num neg rnd">−35,000</span>
+        </button>
+      </div>
+
+      <div class="callout">
+        <b>Notice the transfer.</b> Moving Rs 30,000 from the bank into your pocket is not income — it's tagged <em>Transfer</em>, so it never inflates your monthly spending. This is the detail that silently breaks most home-made money apps.
+      </div>
+
+      <div class="duo" style="margin-top:18px">
+        <button class="btn btn-in" type="button" onclick="go('add')">$plus Cash in</button>
+        <button class="btn btn-out" type="button" onclick="go('add')">$minus Cash out</button>
+      </div>
+    </section>
+
+    <!-- ══════════════════  ADD ENTRY  ══════════════════ -->
+    <section class="screen" id="s-add">
+      <div class="bar">
+        <button class="iconbtn" type="button" onclick="go('home')" aria-label="Cancel">$close</button>
+        <div style="flex:1"><h2 class="rnd">Cash out</h2><p class="sub">Zargham · Cash in hand</p></div>
+      </div>
+
+      <div class="amount-stage">
+        <div class="lab">Amount</div>
+        <div class="val rnd num"><em>Rs</em>3,400<span class="caret"></span></div>
+      </div>
+
+      <div class="sec"><h3>What was it for?</h3></div>
+      <div class="chips" role="group" aria-label="Category">
+        <button class="chip" type="button" aria-pressed="true">$cart Grocery</button>
+        <button class="chip" type="button" aria-pressed="false">$bolt Utilities</button>
+        <button class="chip" type="button" aria-pressed="false">$home Rent</button>
+        <button class="chip" type="button" aria-pressed="false">$fuel Fuel</button>
+        <button class="chip" type="button" aria-pressed="false">$book School</button>
+        <button class="chip" type="button" aria-pressed="false">$heart Medical</button>
+      </div>
+
+      <div class="sec"><h3>Whose expense?</h3></div>
+      <div class="seg" role="group" aria-label="Household or personal">
+        <button type="button" aria-pressed="true">Household</button>
+        <button type="button" aria-pressed="false">Personal</button>
+      </div>
+
+      <div class="field"><span class="k">Paid by</span><span class="v">Zargham</span><span class="glyph" style="width:30px;height:30px;border-radius:10px">$chev</span></div>
+      <div class="field"><span class="k">Date</span><span class="v">Today, 9 Aug</span><span class="glyph" style="width:30px;height:30px;border-radius:10px">$chev</span></div>
+      <div class="field"><span class="k">Note</span><span class="v" style="color:var(--ink-3);font-weight:500">Al-Fatah, weekly</span><span class="glyph" style="width:30px;height:30px;border-radius:10px">$chev</span></div>
+      <div class="field"><span class="k">Receipt</span><span class="v" style="color:var(--ink-3);font-weight:500">Add photo</span><span class="glyph" style="width:30px;height:30px;border-radius:10px">$cam</span></div>
+
+      <div style="padding:20px 18px 0"><button class="btn btn-out" type="button" onclick="go('ledger')">Save entry</button></div>
+    </section>
+
+    <!-- ══════════════════  REPORT  ══════════════════ -->
+    <section class="screen" id="s-report">
+      <div class="bar">
+        <div style="flex:1"><h2 class="rnd">August 2026</h2><p class="sub">Everything, combined</p></div>
+        <button class="iconbtn" type="button" aria-label="Export report">$share</button>
+      </div>
+
+      <div class="seg" role="group" aria-label="View">
+        <button type="button" aria-pressed="true">By category</button>
+        <button type="button" aria-pressed="false">By person</button>
+      </div>
+
+      <div class="card">
+        <div class="sec" style="margin:0 0 14px"><h3>Household spending</h3><a href="#" onclick="return false" class="num">Rs 198,400</a></div>
+        <div class="bars">
+          <div class="barrow"><div class="bl"><b>Rent</b><span class="num">Rs 65,000</span><i>33%</i></div>
+            <div class="track"><div class="fill" style="width:33%;background:var(--violet)"></div></div></div>
+          <div class="barrow"><div class="bl"><b>School fees</b><span class="num">Rs 52,000</span><i>26%</i></div>
+            <div class="track"><div class="fill" style="width:26%;background:var(--orchid)"></div></div></div>
+          <div class="barrow"><div class="bl"><b>Grocery</b><span class="num">Rs 41,300</span><i>21%</i></div>
+            <div class="track"><div class="fill" style="width:21%;background:var(--gold)"></div></div></div>
+          <div class="barrow"><div class="bl"><b>Utilities</b><span class="num">Rs 27,600</span><i>14%</i></div>
+            <div class="track"><div class="fill" style="width:14%;background:var(--in)"></div></div></div>
+          <div class="barrow"><div class="bl"><b>Medical</b><span class="num">Rs 12,500</span><i>6%</i></div>
+            <div class="track"><div class="fill" style="width:6%;background:var(--out)"></div></div></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="sec" style="margin:0 0 14px"><h3>Who spent on the house</h3></div>
+        <div class="bars">
+          <div class="barrow"><div class="bl"><b>Zargham</b><span class="num">Rs 121,900</span><i>61%</i></div>
+            <div class="track"><div class="fill" style="width:61%;background:linear-gradient(90deg,var(--violet),var(--orchid))"></div></div></div>
+          <div class="barrow"><div class="bl"><b>Ayesha</b><span class="num">Rs 63,400</span><i>32%</i></div>
+            <div class="track"><div class="fill" style="width:32%;background:linear-gradient(90deg,var(--orchid),var(--gold-bright))"></div></div></div>
+          <div class="barrow"><div class="bl"><b>Bilal</b><span class="num">Rs 13,100</span><i>7%</i></div>
+            <div class="track"><div class="fill" style="width:7%;background:var(--gold)"></div></div></div>
+        </div>
+      </div>
+
+      <div class="callout">
+        <b>This screen is the one you've been building by hand.</b> Personal spending stays in each person's own ledger, but every household rupee — whoever paid it — rolls up here automatically. No separate monthly book to create, no totals to copy across.
+      </div>
+
+      <div class="sec"><h3>Carry forward</h3></div>
+      <div class="card">
+        <div class="person" style="border:0;padding:0 0 12px">
+          <span class="glyph in">$check</span>
+          <span class="row-main"><span class="row-t">August closes at Rs 184,300</span>
+          <span class="row-s">Becomes September's opening balance automatically</span></span>
+        </div>
+        <button class="btn btn-ghost" type="button">$share Export as PDF or Excel</button>
+      </div>
+    </section>
+
+    <!-- ══════════════════  PEOPLE  ══════════════════ -->
+    <section class="screen" id="s-people">
+      <div class="bar">
+        <div style="flex:1"><h2 class="rnd">Family</h2><p class="sub">4 people share these books</p></div>
+        <button class="iconbtn" type="button" aria-label="Invite someone">$plus</button>
+      </div>
+
+      <div class="card">
+        <div class="person">
+          <span class="pav rnd" style="background:linear-gradient(140deg,var(--violet),var(--orchid))">ZA</span>
+          <span class="row-main"><span class="row-t">Zargham (you)</span><span class="row-s">All accounts</span></span>
+          <span class="role owner">Owner</span>
+        </div>
+        <div class="person">
+          <span class="pav rnd" style="background:linear-gradient(140deg,var(--orchid),var(--gold-bright))">AY</span>
+          <span class="row-main"><span class="row-t">Ayesha</span><span class="row-s">All accounts · can edit</span></span>
+          <span class="role">Admin</span>
+        </div>
+        <div class="person">
+          <span class="pav rnd" style="background:linear-gradient(140deg,var(--in),var(--violet))">BI</span>
+          <span class="row-main"><span class="row-t">Bilal</span><span class="row-s">Own cash only · adds entries</span></span>
+          <span class="role">Member</span>
+        </div>
+        <div class="person">
+          <span class="pav rnd" style="background:linear-gradient(140deg,var(--gold),var(--out))">SA</span>
+          <span class="row-main"><span class="row-t">Sana</span><span class="row-s">Household reports · read only</span></span>
+          <span class="role">Viewer</span>
+        </div>
+      </div>
+
+      <div class="callout">
+        <b>Roles are enforced in the database, not just hidden in the app.</b> A Viewer physically cannot write an entry, even from a modified phone. That matters once this goes public.
+      </div>
+
+      <div class="sec"><h3>Invite</h3></div>
+      <div class="card">
+        <div class="row" style="border:0;box-shadow:none;padding:0;cursor:default">
+          <span class="glyph gold">$mail</span>
+          <span class="row-main"><span class="row-t">Send an invite link</span><span class="row-s">They sign in with Google — nothing to install on Android</span></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════  TABS  ══════════════════ -->
+    <nav class="tabs" aria-label="Main">
+      <button class="tab" type="button" aria-current="true" data-go="home">$grid<span>Home</span></button>
+      <button class="tab" type="button" aria-current="false" data-go="ledger">$list<span>Ledger</span></button>
+      <button class="fab" type="button" data-go="add" aria-label="Add an entry">$plus</button>
+      <button class="tab" type="button" aria-current="false" data-go="report">$chart<span>Reports</span></button>
+      <button class="tab" type="button" aria-current="false" data-go="people">$users<span>Family</span></button>
+    </nav>
+
+  </div>
+  </div>
+
+  <footer class="stage-foot">
+    <h4>What to look at</h4>
+    <ul>
+      <li>The <b>carry-forward strip</b> on the home card — opening, in, out, closing. That replaces creating a book per month.</li>
+      <li>The <b>Household / Personal</b> split on every entry, and how Reports rolls it up across all four people.</li>
+      <li>The <b>Transfer</b> entry in the ledger — money moving between your own accounts, not counted as spending.</li>
+      <li>Switch your phone between light and dark mode; both are designed.</li>
+    </ul>
+  </footer>
+</div>
+
+<script>
+/* Inline icon set — small, consistent, 24px grid. */
+const ICONS = {
+  wallet:'<path d="M3 8.5A2.5 2.5 0 0 1 5.5 6H18a3 3 0 0 1 3 3v6a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3V8.5Z"/><path d="M3 9h13"/><circle cx="17" cy="13" r="1.3" fill="currentColor" stroke="none"/>',
+  bank:'<path d="M3 10h18"/><path d="M12 3 3 8h18l-9-5Z"/><path d="M6 10v7M10 10v7M14 10v7M18 10v7"/><path d="M3 20h18"/>',
+  safe:'<rect x="3" y="4" width="18" height="16" rx="2.5"/><circle cx="12" cy="12" r="3.6"/><path d="M12 8.4V6M19 8v8"/>',
+  cart:'<circle cx="9" cy="20" r="1.4" fill="currentColor" stroke="none"/><circle cx="17.5" cy="20" r="1.4" fill="currentColor" stroke="none"/><path d="M2.5 3h2.2l2.4 11.2a1.6 1.6 0 0 0 1.6 1.3h8.7a1.6 1.6 0 0 0 1.6-1.2L21 7H6"/>',
+  fuel:'<path d="M4 20V5a2 2 0 0 1 2-2h5a2 2 0 0 1 2 2v15"/><path d="M3 20h11"/><path d="M13 9h3.5a1.5 1.5 0 0 1 1.5 1.5V16a1.8 1.8 0 0 0 3.5.6"/><path d="M5 8h7"/>',
+  bolt:'<path d="M13 2 4.5 13.5H11l-1 8.5 8.5-11.5H12l1-8.5Z"/>',
+  home:'<path d="M3 10.5 12 3l9 7.5"/><path d="M5.5 9.5V20h13V9.5"/><path d="M9.5 20v-5.5h5V20"/>',
+  book:'<path d="M4 4.5A1.5 1.5 0 0 1 5.5 3H19v15H5.5A1.5 1.5 0 0 0 4 19.5v-15Z"/><path d="M4 19.5A1.5 1.5 0 0 1 5.5 18H19v3H5.5A1.5 1.5 0 0 1 4 19.5Z"/>',
+  heart:'<path d="M12 20s-7.5-4.6-7.5-9.7A4.3 4.3 0 0 1 12 7.4a4.3 4.3 0 0 1 7.5 2.9C19.5 15.4 12 20 12 20Z"/>',
+  transfer:'<path d="M4 8h13"/><path d="m13.5 4.5 3.5 3.5-3.5 3.5"/><path d="M20 16H7"/><path d="m10.5 12.5-3.5 3.5 3.5 3.5"/>',
+  plus:'<path d="M12 5v14M5 12h14"/>',
+  minus:'<path d="M5 12h14"/>',
+  close:'<path d="m6 6 12 12M18 6 6 18"/>',
+  back:'<path d="M14.5 5 8 12l6.5 7"/>',
+  chev:'<path d="M9.5 5 16 12l-6.5 7"/>',
+  filter:'<path d="M3 5.5h18"/><path d="M6.5 12h11"/><path d="M10 18.5h4"/>',
+  share:'<path d="M12 3v12"/><path d="m8 7 4-4 4 4"/><path d="M5 13v6a1.5 1.5 0 0 0 1.5 1.5h11A1.5 1.5 0 0 0 19 19v-6"/>',
+  cam:'<path d="M3 8.5A1.5 1.5 0 0 1 4.5 7H7l1.5-2.5h7L17 7h2.5A1.5 1.5 0 0 1 21 8.5v9a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 17.5v-9Z"/><circle cx="12" cy="13" r="3.4"/>',
+  check:'<path d="m5 12.5 4.5 4.5L19 7"/>',
+  mail:'<rect x="3" y="5" width="18" height="14" rx="2.2"/><path d="m3.5 7 8.5 6 8.5-6"/>',
+  grid:'<rect x="3.5" y="3.5" width="7" height="7" rx="2"/><rect x="13.5" y="3.5" width="7" height="7" rx="2"/><rect x="3.5" y="13.5" width="7" height="7" rx="2"/><rect x="13.5" y="13.5" width="7" height="7" rx="2"/>',
+  list:'<path d="M8 6h13M8 12h13M8 18h13"/><circle cx="4" cy="6" r="1.2" fill="currentColor" stroke="none"/><circle cx="4" cy="12" r="1.2" fill="currentColor" stroke="none"/><circle cx="4" cy="18" r="1.2" fill="currentColor" stroke="none"/>',
+  chart:'<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
+  users:'<circle cx="9" cy="8" r="3.4"/><path d="M2.5 19.5c.6-3.5 3.3-5.3 6.5-5.3s5.9 1.8 6.5 5.3"/><path d="M16.5 5.2a3.4 3.4 0 0 1 0 6.6"/><path d="M18 14.5c2.2.5 3.7 2.3 4.1 5"/>'
+};
+
+/* Replace every $iconName token with an inline SVG. */
+(function paint(){
+  const wrap = n => '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" '
+    + 'stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + ICONS[n] + '</svg>';
+  const walk = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+  const hits = [];
+  while (walk.nextNode()) if (/\$[a-z]+/.test(walk.currentNode.nodeValue)) hits.push(walk.currentNode);
+  hits.forEach(node => {
+    const html = node.nodeValue.replace(/\$([a-z]+)/g, (m, n) => ICONS[n] ? wrap(n) : m);
+    if (html === node.nodeValue) return;
+    const span = document.createElement('span');
+    span.style.display = 'contents';
+    span.innerHTML = html;
+    node.parentNode.replaceChild(span, node);
+  });
+})();
+
+/* Screen routing */
+function go(name){
+  document.querySelectorAll('.screen').forEach(s => s.classList.toggle('on', s.id === 's' + '-' + name));
+  document.querySelectorAll('.tab').forEach(t => t.setAttribute('aria-current', String(t.dataset.go === name)));
+  const scr = document.getElementById('s-' + name);
+  if (scr) scr.scrollTop = 0;
+}
+document.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', () => go(b.dataset.go)));
+
+/* Toggle groups: month chips, segmented controls, category chips */
+function exclusive(container, sel){
+  container.querySelectorAll(sel).forEach(btn => btn.addEventListener('click', () => {
+    container.querySelectorAll(sel).forEach(o => o.setAttribute('aria-pressed', 'false'));
+    btn.setAttribute('aria-pressed', 'true');
+  }));
+}
+document.querySelectorAll('.months').forEach(m => exclusive(m, '.chipm'));
+document.querySelectorAll('.seg').forEach(s => exclusive(s, 'button'));
+document.querySelectorAll('.chips').forEach(c => exclusive(c, '.chip'));
+</script>
