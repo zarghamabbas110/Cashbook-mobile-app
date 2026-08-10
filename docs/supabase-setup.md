@@ -3,9 +3,9 @@
 What this gets you: one shared book across every phone in the family, live.
 An entry added on one device appears on the others in about a second.
 
-You have a Supabase account already, so this is roughly twenty minutes of
-clicking. Do the steps in order — a couple of them depend on values produced
-by earlier ones.
+**Four steps, about five minutes.** No Google Cloud, no OAuth consent screen,
+no email provider. An earlier version of this guide had all of that; the
+sign-in design below removed the need for it.
 
 ---
 
@@ -22,9 +22,9 @@ Supabase dashboard → **New project**.
 
 Give it a minute or two to finish provisioning.
 
-Use a **separate project** from your other app. Sharing one would mean both
-apps' tables sit in the same database with the same auth users, and a mistake
-in one could reach the other. Free projects are unlimited in number.
+Use a **separate project** from your other app. Sharing one would put both
+apps' tables and users in the same database, where a mistake in one could
+reach the other. Free projects are unlimited.
 
 ---
 
@@ -33,57 +33,31 @@ in one could reach the other. Free projects are unlimited in number.
 Left sidebar → **SQL Editor** → **New query**.
 
 Open `docs/supabase-schema.sql` from this repo, copy the whole file, paste it
-in, and press **Run**. It should finish with "Success. No rows returned."
+in, press **Run**. It should end with "Success. No rows returned."
 
-That single file creates every table and — more importantly — the row-level
-security policies. Those are what make roles real: a viewer is refused by the
-database itself, not merely shown fewer buttons in the app. Without them,
-anyone who opened the browser console could write to your books.
+That one file creates every table and the row-level security policies. Those
+policies are what make roles real: a viewer is refused by the database itself,
+not merely shown fewer buttons. Without them, anyone who opened a browser
+console could write to your books.
 
-Check it worked: **Table Editor** should now list `spaces`, `space_members`,
-`people`, `accounts`, `categories` and `entries`, each showing a green
-**RLS enabled** badge.
-
----
-
-## 3. Turn on Google sign-in
-
-**Authentication → Sign In / Providers → Google → Enable.**
-
-It asks for a Client ID and Client Secret, which come from Google, not
-Supabase. Copy the **Callback URL** Supabase shows you first — you will need
-to paste it into Google.
-
-Then, in a new tab, [Google Cloud Console](https://console.cloud.google.com):
-
-1. Create a project (or reuse one) → **APIs & Services** → **OAuth consent screen**
-   - User type **External**, app name `Rozana`, your email for support and developer contact
-   - Under **Audience**, add your own Google account as a **Test user**
-   - Leave it in Testing mode. Publishing is only needed once strangers use it
-2. **APIs & Services → Credentials → Create credentials → OAuth client ID**
-   - Application type **Web application**
-   - **Authorised JavaScript origins**: `https://zarghamabbas110.github.io`
-   - **Authorised redirect URIs**: the Callback URL you copied from Supabase.
-     It looks like `https://<project-ref>.supabase.co/auth/v1/callback`
-3. Copy the **Client ID** and **Client secret** back into Supabase, and save.
+To check: **Table Editor** should now list `spaces`, `space_members`,
+`people`, `accounts`, `categories`, `entries` and `space_invites`, each with a
+green **RLS enabled** badge.
 
 ---
 
-## 4. Tell Supabase where the app lives
+## 3. Turn on anonymous sign-in
 
-**Authentication → URL Configuration.**
+**Authentication → Sign In / Providers → Anonymous sign-ins → Enable.**
 
-- **Site URL**: `https://zarghamabbas110.github.io/Cashbook-mobile-app/`
-- **Redirect URLs**: add both of these
-  - `https://zarghamabbas110.github.io/Cashbook-mobile-app/`
-  - `http://localhost:5173/` — so the app still works while being developed
+One toggle. This is what lets a phone get an identity by opening an invite
+link, with nothing to type and no account to create.
 
-Getting this wrong is the single most common cause of "sign-in spins and comes
-back logged out", so double-check the trailing slashes.
+Leave every other provider off.
 
 ---
 
-## 5. Send me two values
+## 4. Send me two values
 
 **Project Settings → API**:
 
@@ -92,39 +66,71 @@ back logged out", so double-check the trailing slashes.
 
 Both are safe to share and safe to ship inside the app. The anon key is
 designed to be public; it grants nothing on its own, because every table is
-guarded by the policies from step 2. 
+guarded by the policies from step 2.
 
-**Never send me the `service_role` key.** That one bypasses all security. It
-is on the same settings page, which is exactly why it is worth naming.
-
----
-
-## One thing I need to warn you about
-
-Signing in with Google normally works by sending you off to Google's website
-and back. That breaks inside a home-screen web app on iPhone: iOS treats
-leaving the site as leaving the app, so it kicks you out to Safari and you can
-end up signed in *there* rather than in the app on your home screen.
-
-So I will not use the ordinary redirect flow. Instead:
-
-- **Google sign-in stays inside the app**, using Google's newer in-page
-  sign-in rather than a redirect. No bouncing out to Safari.
-- **A six-digit email code as the fallback.** You type your email, a code
-  arrives, you type it in. It never leaves the app, so it works everywhere,
-  including on any phone where the Google flow misbehaves.
-
-You will not notice any of this — it is a note so that when you see two
-sign-in options on the screen, you know why the second one is there.
+**Never send the `service_role` key.** It sits on the same page and it
+bypasses all security, which is exactly why it is worth naming.
 
 ---
 
-## What happens to the data you have entered by then
+## How signing in will work
 
-Whatever you have been recording on your phone up to that point is not lost.
-Once sync is live, the app will offer to upload your existing device data into
-your new cloud space the first time you sign in.
+You asked for something simpler than Google accounts. Here is what I am
+building, and the one thing you should understand about it.
 
-Take a backup anyway, from **Settings → Save a backup**, before we switch over.
-It costs one tap and it means there is no version of this where your entries
-disappear.
+**For you, setting up:** you are already signed in on your phone. Nothing
+changes.
+
+**For a family member:** you tap **Invite** next to their name, which produces
+a link. You send it on WhatsApp. They tap it, the app opens, it says
+"You've been added as Ayesha", and asks them to pick a four-digit code. Done.
+No account, no password, no email, nothing to install beyond adding it to
+their home screen.
+
+**After that:** the app asks for their four digits when they open it.
+
+### The part worth understanding
+
+You said "just a simple four-digit code and then he can have the access". I
+have built something that *feels* exactly like that, but I have not made the
+four digits the thing that protects your books, and I want to be straight
+about why.
+
+Four digits is ten thousand possibilities. A person can try them all with a
+script in under a minute. If the code were the only credential, anyone who
+found the app's address could walk into your family's finances.
+
+So the security actually rests on **the invite link**, which carries a long
+random token that cannot be guessed. Once a phone has used that link, that
+phone is trusted, permanently. The four-digit code is a lock on the phone
+itself — it stops your children, or whoever picks up an unlocked handset,
+from opening the app. That is a real and worthwhile job, and it is the job
+four digits is suited to.
+
+The experience is what you asked for. The strength sits in the link rather
+than the code.
+
+### Consequences to know about
+
+- **Treat an invite link like a key.** Anyone who opens it joins your books.
+  They expire after 14 days and stop working once used, but don't post one
+  in a group chat you don't control.
+- **Clearing browser data signs that phone out.** Anonymous identities live in
+  the browser's storage. You would just send a fresh invite link.
+- **Losing a phone means removing that person and re-inviting them.** I will
+  make that one tap on the Family screen.
+
+If you later want the extra safety of a recoverable account — so a lost phone
+does not need a new invite — I can add an optional "attach my email" step
+without disturbing any of the above.
+
+---
+
+## Your existing entries
+
+Whatever you have recorded on your phone by then is not lost. The first time
+you sign in after sync goes live, the app will offer to upload your device's
+data into the new cloud space.
+
+Take a backup first anyway, from **Settings → Save a backup**. One tap, and it
+means there is no version of this where your entries disappear.

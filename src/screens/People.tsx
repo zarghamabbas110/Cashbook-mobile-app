@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { Person, Role, Snapshot } from '../lib/types'
-import { addPerson, updatePerson } from '../lib/store'
+import { addPerson, deletePerson, personFootprint, updatePerson } from '../lib/store'
 import { Avatar, Section } from '../components/bits'
 import { Icon } from '../components/Icon'
 
@@ -57,20 +57,22 @@ export function People({ snap, onChanged }: { snap: Snapshot; onChanged: (m: str
       {adding && (
         <div className="card" style={{ marginBottom: 12 }}>
           <Section title="Add someone" />
-          <label className="field" style={{ margin: 0, width: '100%' }}>
+          <label className="field">
             <span className="k">Name</span>
             <input
               value={name} onChange={e => setName(e.target.value)}
-              placeholder="Their name" autoFocus
+              // No autoFocus: it yanks the page around on iOS before you have
+              // even looked at the form. Tap the field when you are ready.
+              placeholder="Their name"
               onKeyDown={e => e.key === 'Enter' && add()}
             />
           </label>
-          <label className="field" style={{ width: '100%' }}>
+          <label className="field">
             <span className="k">Can</span>
             <select value={role} onChange={e => setRole(e.target.value as Role)}>
-              <option value="admin">Everything (Admin)</option>
-              <option value="member">Add entries (Member)</option>
-              <option value="viewer">Only look (Viewer)</option>
+              <option value="admin">Admin</option>
+              <option value="member">Member</option>
+              <option value="viewer">Viewer</option>
             </select>
           </label>
           <div style={{ marginTop: 14 }}>
@@ -84,11 +86,16 @@ export function People({ snap, onChanged }: { snap: Snapshot; onChanged: (m: str
       <div className="card">
         {snap.people.map(p => (
           <PersonRow
-            key={p.id} person={p} isMe={p.id === snap.meId}
+            key={p.id} person={p} snap={snap} isMe={p.id === snap.meId}
             editing={editing === p.id}
             onEdit={() => setEditing(editing === p.id ? null : p.id)}
             onRename={next => { updatePerson(p.id, { name: next }); onChanged('Name updated') }}
             onRole={next => { updatePerson(p.id, { role: next }); onChanged('Role updated') }}
+            onRemove={heir => {
+              deletePerson(p.id, heir)
+              setEditing(null)
+              onChanged(`${p.name} removed`)
+            }}
           />
         ))}
       </div>
@@ -115,16 +122,25 @@ export function People({ snap, onChanged }: { snap: Snapshot; onChanged: (m: str
 }
 
 function PersonRow({
-  person, isMe, editing, onEdit, onRename, onRole,
+  person, snap, isMe, editing, onEdit, onRename, onRole, onRemove,
 }: {
   person: Person
+  snap: Snapshot
   isMe: boolean
   editing: boolean
   onEdit: () => void
   onRename: (name: string) => void
   onRole: (role: Role) => void
+  onRemove: (heir: string) => void
 }) {
   const [draft, setDraft] = useState(person.name)
+  const [removing, setRemoving] = useState(false)
+
+  const others = snap.people.filter(p => p.id !== person.id)
+  const [heir, setHeir] = useState(others[0]?.id ?? '')
+  const { entries, accounts } = personFootprint(person.id)
+  const attached = entries + accounts
+  const canRemove = person.role !== 'owner' && others.length > 0
 
   return (
     <>
@@ -141,7 +157,7 @@ function PersonRow({
       </div>
       {editing && (
         <div style={{ padding: '0 0 14px' }}>
-          <label className="field" style={{ margin: 0, width: '100%' }}>
+          <label className="field">
             <span className="k">Name</span>
             <input
               value={draft}
@@ -150,14 +166,65 @@ function PersonRow({
             />
           </label>
           {person.role !== 'owner' && (
-            <label className="field" style={{ width: '100%' }}>
+            <label className="field">
               <span className="k">Can</span>
               <select value={person.role} onChange={e => onRole(e.target.value as Role)}>
-                <option value="admin">Everything (Admin)</option>
-                <option value="member">Add entries (Member)</option>
-                <option value="viewer">Only look (Viewer)</option>
+                <option value="admin">Admin</option>
+                <option value="member">Member</option>
+                <option value="viewer">Viewer</option>
               </select>
             </label>
+          )}
+
+          {canRemove && !removing && (
+            <div style={{ marginTop: 12 }}>
+              <button className="btn btn-ghost" type="button" onClick={() => setRemoving(true)}>
+                <Icon name="trash" size={18} /> Remove from family
+              </button>
+            </div>
+          )}
+
+          {removing && (
+            <div style={{ marginTop: 12 }}>
+              {attached > 0 ? (
+                <>
+                  <p className="note">
+                    {person.name} is attached to{' '}
+                    {entries > 0 && <>{entries} {entries === 1 ? 'entry' : 'entries'}</>}
+                    {entries > 0 && accounts > 0 && ' and '}
+                    {accounts > 0 && <>{accounts} {accounts === 1 ? 'account' : 'accounts'}</>}.
+                    That history stays — money spent was still spent — so it needs a new owner.
+                  </p>
+                  <label className="field" style={{ marginBottom: 12 }}>
+                    <span className="k">Hand over to</span>
+                    <select value={heir} onChange={e => setHeir(e.target.value)}>
+                      {others.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                    </select>
+                  </label>
+                </>
+              ) : (
+                <p className="note">
+                  {person.name} has no entries or accounts, so nothing else changes.
+                </p>
+              )}
+              <div className="duo" style={{ padding: 0 }}>
+                <button className="btn btn-ghost" type="button" onClick={() => setRemoving(false)}>
+                  Keep
+                </button>
+                <button
+                  className="btn btn-out" type="button"
+                  onClick={() => onRemove(heir)} disabled={!heir}
+                >
+                  Remove
+                </button>
+              </div>
+            </div>
+          )}
+
+          {person.role === 'owner' && (
+            <p className="note">
+              The owner cannot be removed — someone has to be able to manage the space.
+            </p>
           )}
         </div>
       )}

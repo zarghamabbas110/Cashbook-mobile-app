@@ -90,6 +90,25 @@ create index if not exists entries_account_date_idx on public.entries (account_i
 create index if not exists entries_transfer_idx on public.entries (transfer_id)
   where transfer_id is not null;
 
+-- Invites. The token in a shared link is the actual credential, so it is long
+-- and random. The four-digit code a family member picks is a lock on their own
+-- device, never a password the server would accept — four digits is 10,000
+-- guesses, which is fine for stopping a curious relative and useless against
+-- anyone on the internet.
+create table if not exists public.space_invites (
+  token      text primary key,
+  space_id   uuid not null references public.spaces (id) on delete cascade,
+  -- Optionally pre-assigns the joiner to an existing person, so their name and
+  -- history are already waiting for them.
+  person_id  uuid references public.people (id) on delete set null,
+  role       public.member_role not null default 'member',
+  created_by uuid not null references auth.users (id),
+  created_at timestamptz not null default now(),
+  expires_at timestamptz not null default now() + interval '14 days',
+  used_at    timestamptz,
+  used_by    uuid references auth.users (id)
+);
+
 -- ─────────────────────────  Role helpers  ─────────────────────────
 -- SECURITY DEFINER so policies can read space_members without the policy on
 -- space_members recursing into itself.
@@ -178,6 +197,63 @@ create policy entries_update on public.entries
 create policy entries_delete on public.entries
   for delete
   using (public.can_admin(space_id) or (public.can_write(space_id) and created_by = auth.uid()));
+
+-- Invites are administrative: only an admin may see or create them. Joining
+-- happens through redeem_invite below, which does not need this policy.
+alter table public.space_invites enable row level security;
+create policy invites_admin on public.space_invites
+  for all using (public.can_admin(space_id)) with check (public.can_admin(space_id));
+
+-- ─────────────────────────  Joining a space  ─────────────────────────
+
+-- SECURITY DEFINER because whoever is redeeming is, by definition, not yet a
+-- member and so cannot read the invite row under the policy above.
+create or replace function public.redeem_invite(invite_token text)
+returns uuid
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  inv public.space_invites;
+begin
+  if auth.uid() is null then
+    raise exception 'Not signed in.';
+  end if;
+
+  select * into inv
+    from public.space_invites
+   where token = invite_token
+     and used_at is null
+     and expires_at > now();
+
+  if not found then
+    raise exception 'This invite link has expired or has already been used.';
+  end if;
+
+  insert into public.space_members (space_id, user_id, role)
+       values (inv.space_id, auth.uid(), inv.role)
+  on conflict (space_id, user_id) do nothing;
+
+  -- Claim the person the invite was addressed to, so the joiner's existing
+  -- entries and accounts are already theirs.
+  if inv.person_id is not null then
+    update public.people
+       set user_id = auth.uid()
+     where id = inv.person_id
+       and user_id is null;
+  end if;
+
+  update public.space_invites
+     set used_at = now(), used_by = auth.uid()
+   where token = inv.token;
+
+  return inv.space_id;
+end;
+$$;
+
+revoke all on function public.redeem_invite(text) from public;
+grant execute on function public.redeem_invite(text) to authenticated;
 
 -- ─────────────────────────  Live updates  ─────────────────────────
 -- Lets every phone in the space see a new entry within a second or so.

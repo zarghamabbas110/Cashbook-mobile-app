@@ -62,6 +62,7 @@
 
 *{box-sizing:border-box}
 html,body,#root{height:100%}
+html{-webkit-text-size-adjust:100%}
 body{
   margin:0; background:var(--stage); color:var(--ink);
   font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
@@ -83,17 +84,24 @@ input,button,select,textarea{font:inherit;color:inherit}
 }
 .app{
   width:100%; max-width:440px; height:100%;
-  display:flex; flex-direction:column; position:relative; overflow:hidden;
+  display:flex; flex-direction:column; position:relative;
   background:var(--ground);
+  overflow:hidden;
+  overflow:clip; /* see .body */
 }
 @media (min-width:520px){
   .app{height:min(880px,100%);border-radius:34px;box-shadow:0 30px 70px rgba(24,12,48,.34)}
 }
-.body{position:relative;flex:1;overflow:hidden}
+/* Off-screen screens sit at translateX(100%), which doubles this element's
+   scrollable width. `overflow:hidden` hides that but still leaves a scroll
+   container that scripts can move — and Safari's scrollIntoView will happily
+   scroll it, dragging the whole app sideways. `clip` creates no scroll
+   container at all, so nothing can shift it. */
+.body{position:relative;flex:1;overflow:hidden;overflow:clip}
 
 /* ═════════════════════════  SCREENS  ═════════════════════════ */
 .screen{
-  position:absolute; inset:0; overflow-y:auto; overflow-x:hidden;
+  position:absolute; inset:0; overflow-y:auto; overflow-x:clip;
   padding-bottom:26px; background:var(--ground);
   opacity:0; visibility:hidden; pointer-events:none; transform:translateY(10px);
   transition:opacity .26s ease, transform .38s var(--ease), visibility .38s;
@@ -246,6 +254,15 @@ input,button,select,textarea{font:inherit;color:inherit}
 .seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:var(--shadow-sm)}
 .seg button:focus-visible{outline:2.5px solid var(--violet);outline-offset:1px}
 
+/* Cash in / out / move. The selected tab carries the direction's colour so
+   there is no way to mistake which kind of entry you are writing. */
+.seg-mode{margin-top:2px}
+.seg-mode button[data-mode="in"][aria-pressed="true"]{background:var(--in);color:#fff}
+.seg-mode button[data-mode="out"][aria-pressed="true"]{background:var(--out);color:#fff}
+.seg-mode button[data-mode="transfer"][aria-pressed="true"]{
+  background:linear-gradient(135deg,var(--violet),var(--orchid));color:#fff;
+}
+
 .bars{display:flex;flex-direction:column;gap:14px}
 .barrow .bl{display:flex;align-items:baseline;gap:8px;margin-bottom:7px}
 .barrow .bl b{font-size:13.5px;font-weight:650;flex:1;letter-spacing:-.01em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -335,6 +352,9 @@ input,button,select,textarea{font:inherit;color:inherit}
   width:calc(100% - 36px);text-align:left;
 }
 .field + .field{margin-top:10px}
+/* Inside a card the padding is already there, so the field must not add its
+   own side margins on top of a full width — that overflows by exactly 36px. */
+.card .field{margin-inline:0;width:100%}
 button.field{cursor:pointer}
 button.field:focus-visible,.field:focus-within{outline:2.5px solid var(--violet);outline-offset:2px}
 .field.accent{border-color:var(--gold);background:linear-gradient(120deg,var(--gold-tint),var(--surface) 70%)}
@@ -342,8 +362,10 @@ button.field:focus-visible,.field:focus-within{outline:2.5px solid var(--violet)
 .field .v{font-size:14px;font-weight:650;flex:1;text-align:right;min-width:0;overflow:hidden;text-overflow:ellipsis}
 .field .v.dim{color:var(--ink-3);font-weight:500}
 .field .v small{display:block;font-size:11px;font-weight:600;color:var(--gold);margin-top:2px}
+/* 16px is the threshold below which iOS Safari zooms the page on focus.
+   Anything smaller here makes tapping a field lurch the whole screen. */
 .field input,.field select{
-  flex:1;border:0;background:0;text-align:right;font-size:14px;font-weight:650;
+  flex:1;border:0;background:0;text-align:right;font-size:16px;font-weight:650;
   min-width:0;padding:0;
 }
 .field input:focus,.field select:focus{outline:0}
@@ -365,6 +387,7 @@ button.field:focus-visible,.field:focus-within{outline:2.5px solid var(--violet)
 .callout b{color:var(--ink)}
 .callout.violet{background:var(--violet-tint);border-color:rgba(107,47,181,.24)}
 
+.note{margin:0 0 12px;font-size:12.5px;line-height:1.6;color:var(--ink-2)}
 .empty{margin:0 18px;padding:34px 20px;text-align:center;color:var(--ink-3);font-size:13.5px;line-height:1.6}
 .empty b{display:block;color:var(--ink);font-size:15px;margin-bottom:6px;font-weight:650}
 

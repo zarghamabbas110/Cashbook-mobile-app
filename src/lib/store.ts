@@ -184,6 +184,37 @@ export function updatePerson(id: string, patch: Partial<Person>): void {
   })
 }
 
+/** How much of the books a person is currently attached to. */
+export function personFootprint(id: string): { entries: number; accounts: number } {
+  return {
+    entries: snapshot.entries.filter(e => e.personId === id).length,
+    accounts: snapshot.accounts.filter(a => a.personId === id).length,
+  }
+}
+
+/**
+ * Removes someone from the family, handing their entries and accounts to
+ * another person.
+ *
+ * Their history is never deleted along with them — money that was spent was
+ * still spent, and dropping it would silently change every past total. The
+ * owner cannot be removed, because somebody has to be able to administer the
+ * space.
+ */
+export function deletePerson(id: string, reassignTo: string): void {
+  const person = snapshot.people.find(p => p.id === id)
+  if (!person || person.role === 'owner' || id === reassignTo) return
+  if (!snapshot.people.some(p => p.id === reassignTo)) return
+
+  commit({
+    ...snapshot,
+    people: snapshot.people.filter(p => p.id !== id),
+    entries: snapshot.entries.map(e => (e.personId === id ? { ...e, personId: reassignTo } : e)),
+    accounts: snapshot.accounts.map(a =>
+      a.personId === id ? { ...a, personId: reassignTo } : a),
+  })
+}
+
 export function setPeriodStartDay(day: number): void {
   commit({ ...snapshot, space: { ...snapshot.space, periodStartDay: day } })
 }

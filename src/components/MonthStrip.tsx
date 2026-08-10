@@ -15,9 +15,16 @@ export function MonthStrip({
   for (let i = -3; i <= 2; i++) window.add(shiftPeriod(value, i))
   const periods = [...window].sort()
 
+  // Scroll this strip only, by setting its own scrollLeft. scrollIntoView
+  // would walk up the ancestors and can shift the whole app sideways.
   useEffect(() => {
-    const el = ref.current?.querySelector<HTMLElement>('[aria-pressed="true"]')
-    el?.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' })
+    const strip = ref.current
+    const active = strip?.querySelector<HTMLElement>('[aria-pressed="true"]')
+    if (!strip || !active) return
+    strip.scrollTo({
+      left: active.offsetLeft - (strip.clientWidth - active.offsetWidth) / 2,
+      behavior: 'smooth',
+    })
   }, [value])
 
   return (

@@ -8,7 +8,7 @@ import { Section } from './bits'
 type Mode = Direction | 'transfer'
 
 export function EntrySheet({
-  open, snap, mode, accountId, period, onClose, onSaved,
+  open, snap, mode: openedAs, accountId, period, onClose, onSaved,
 }: {
   open: boolean
   snap: Snapshot
@@ -22,6 +22,9 @@ export function EntrySheet({
   const accounts = snap.accounts.filter(a => !a.archived)
   const fallbackAccount = accounts[0]?.id ?? ''
 
+  // The mode the sheet opened with is only a starting point — you can switch
+  // between cash in, cash out and a transfer without closing and reopening.
+  const [mode, setMode] = useState<Mode>(openedAs)
   const [amount, setAmount] = useState('')
   const [account, setAccount] = useState(accountId ?? fallbackAccount)
   const [toAccount, setToAccount] = useState('')
@@ -36,6 +39,7 @@ export function EntrySheet({
   // account and month the user is currently looking at.
   useEffect(() => {
     if (!open) return
+    setMode(openedAs)
     setAmount('')
     setAccount(accountId ?? fallbackAccount)
     setToAccount(accounts.find(a => a.id !== (accountId ?? fallbackAccount))?.id ?? '')
@@ -46,7 +50,12 @@ export function EntrySheet({
     setCountsIn(period)
     setNote('')
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, mode, accountId, period])
+  }, [open, openedAs, accountId, period])
+
+  // Categories are direction-specific, so a stale one must not survive a switch.
+  useEffect(() => {
+    setCategoryId(undefined)
+  }, [mode])
 
   // The suggested period follows the date until the user overrides it.
   const suggested = periodOf(datePaid, snap.space.periodStartDay)
@@ -118,6 +127,21 @@ export function EntrySheet({
           <button className="iconbtn" type="button" onClick={onClose} aria-label="Close">
             <Icon name="close" />
           </button>
+        </div>
+
+        <div className="seg seg-mode" role="group" aria-label="Kind of entry">
+          {([
+            ['in', 'Cash in'],
+            ['out', 'Cash out'],
+            ['transfer', 'Move'],
+          ] as const).map(([m, label]) => (
+            <button
+              key={m} type="button" aria-pressed={mode === m}
+              data-mode={m} onClick={() => setMode(m)}
+            >
+              {label}
+            </button>
+          ))}
         </div>
 
         <div className="stagger">
