@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Rozana</title>
+    <meta name="description" content="A shared cash book for families." />
+
+    <!-- Home-screen web app on iOS: full screen, own icon, no Safari chrome. -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Rozana" />
+    <meta name="mobile-web-app-capable" content="yes" />
+
+    <!-- Paints the browser UI to match whichever theme is active. -->
+    <meta name="theme-color" content="#FAF6F2" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#131020" media="(prefers-color-scheme: dark)" />
+
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="icon" type="image/svg+xml" href="icon.svg" />
+    <link rel="apple-touch-icon" href="icon-180.png" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

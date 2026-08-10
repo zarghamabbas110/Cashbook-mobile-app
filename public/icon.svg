@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#3A1D6E"/>
+      <stop offset=".52" stop-color="#6B2FB5"/>
+      <stop offset="1" stop-color="#9B3F9E"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="1" cy="0" r="1">
+      <stop offset="0" stop-color="#F2A93B" stop-opacity=".72"/>
+      <stop offset="1" stop-color="#F2A93B" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="512" height="512" rx="114" fill="url(#g)"/>
+  <rect width="512" height="512" rx="114" fill="url(#glow)"/>
+
+  <!-- The layered paper-cut arc carried over from the app's balance card. -->
+  <path d="M-40 372c96-54 200-54 296 0s200 54 296 0v180H-40Z" fill="#fff" opacity=".08"/>
+
+  <!-- Wallet, the same mark used throughout the app's icon set. -->
+  <g fill="none" stroke="#fff" stroke-width="26" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M128 196a44 44 0 0 1 44-44h172a52 52 0 0 1 52 52v100a52 52 0 0 1-52 52H180a52 52 0 0 1-52-52V196Z"/>
+    <path d="M128 210h222"/>
+  </g>
+  <circle cx="330" cy="282" r="23" fill="#F2A93B"/>
+</svg>
